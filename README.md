@@ -14,7 +14,7 @@ This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automat
 - [Clone Hero](https://clonehero.net) or [YARG](https://yarg.in)
 
 ## Setup
-Download and extract the appropriate version of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
+Download and extract your platform's build of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
 
 In order to use PyCHOSS, you need to configure your OBS websocket server.
 
@@ -31,11 +31,43 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 4) Click **Save configuration** to save your settings
 5) Click the **Connect** button, and you should be all set!
 
-## Building (with PyInstaller)
-Details coming soon-ish
+## Building (using [PyInstaller](https://pyinstaller.org/en/stable/))
+First and foremost, download the source code for this repo via the green Code button towards the top of the page when viewing this repo.
 
-## Credits
+### Linux binary from Linux host
+1) If you don't have Python and `pip` set up, you'll need the latest version of both installed on your system (instructions vary by distro, so look it up, I guess)
+
+I also recommend setting up a [virtual environment](https://docs.python.org/3/library/venv.html) in the directory of the source code to avoid certain issues.
+ - If you do this, you'll need to reactivate the venv every time you open the terminal
+   - Example: `source (venv_directory)/bin/activate`
+
+You may also need to install some extra libraries in order to use pyinstaller.  See [this page](https://pyinstaller.org/en/stable/requirements.html#gnu-linux) for more info.
+
+2) Install the required libraries from `requirements.txt`
+```
+pip install -r requirements.txt
+```
+3) Install `pyinstaller` via pip.
+```
+pip install -U pyinstaller
+```
+4) Finally, to build the binary:
+```
+pyinstaller --onefile --noconsole pychoss.py
+```
+Once complete, the Linux binary will be located in the `dist` directory.
+
+### Windows executable from Windows host
+*soon™*
+
+Note: It is currently impossible to build a Linux binary from a Windows machine, as far as I'm aware.  However, building a Windows executable from a Linux machine *might* be possible using Wine, according to [this blog post](https://www.makeworld.space/2021/10/linux-wine-pyinstaller.html).
+
+## Credits and References
 - [obs-websocket-py](https://github.com/Elektordi/obs-websocket-py) : WebSocket API used for interfacing with OBS
+- [ttkbootstrap](https://github.com/israel-dryer/ttkbootstrap) : Library used for enhancing the UI with theme support
 - [PyInstaller](https://pyinstaller.org/en/stable/) : Used for compiling single-file binaries for release
 - [Clone Hero](https://clonehero.net/)
 - [YARG](https://yarg.in/)
+- Countless Google searches leading me to various forums and blogs that helped me develop this script
+
+If you find this program useful for your Twitch streams, then I thank you for using it.
