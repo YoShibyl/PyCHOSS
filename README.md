@@ -1,8 +1,6 @@
 # Python Clone Hero OBS Scene Switcher (PyCHOSS)
 This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automatic OBS scene switching tool for [Clone Hero](https://clonehero.net/) / [YARG](https://yarg.in/) players.  It works by detecting changes in the `currentsong.txt` file of the game, which lets the program determine when to switch to/from the specified scenes via [OBS websockets](https://github.com/Elektordi/obs-websocket-py).
 
-Compiled executables of PyCHOSS will be available in [Releases](https://github.com/YoShibyl/PyCHOSS/releases) (compiled using pyinstaller)
-
 <details>
   <summary>Screenshots (v1.0.0)</summary>
   <img width="946" height="359" alt="image" src="https://github.com/user-attachments/assets/5c1e0eee-c3a1-43c6-9cba-b63e004bf531" />
@@ -16,6 +14,8 @@ Compiled executables of PyCHOSS will be available in [Releases](https://github.c
 - [Clone Hero](https://clonehero.net) or [YARG](https://yarg.in)
 
 ## Setup
+Download and extract the appropriate version of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
+
 In order to use PyCHOSS, you need to configure your OBS websocket server.
 
 ### OBS setup
@@ -30,3 +30,12 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 3) Change the scene names according to the scene names you have in OBS.  **Note that the scene names are case-sensitive!**
 4) Click **Save configuration** to save your settings
 5) Click the **Connect** button, and you should be all set!
+
+## Building (with PyInstaller)
+Details coming soon-ish
+
+## Credits
+- [obs-websocket-py](https://github.com/Elektordi/obs-websocket-py) : WebSocket API used for interfacing with OBS
+- [PyInstaller](https://pyinstaller.org/en/stable/) : Used for compiling single-file binaries for release
+- [Clone Hero](https://clonehero.net/)
+- [YARG](https://yarg.in/)
