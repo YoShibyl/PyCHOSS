@@ -6,6 +6,7 @@ import configparser
 import struct
 import time
 import threading
+import webbrowser
 import tkinter
 from tkinter import *
 import tkinter.font as font
@@ -15,22 +16,107 @@ from tkinter import messagebox
 import ttkbootstrap as tb
 from ttkbootstrap.widgets.tableview import Tableview
 from ttkbootstrap.constants import *
-from PIL import ImageTk, Image
 from obswebsocket import obsws, requests
+from github import Github
 
-appVersion = "v1.0.0"  # Change before release
+appVersion = "v1.1.0-pre1"
+latestRelease = appVersion
+repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
 print("Python Clone Hero OBS Scene Switcher (PyCHOSS) " + appVersion)
 print("Created by Yoshibyl (Yoshi) :: https://github.com/Yoshibyl/")
 
+## Update checker stuff
+updateAvailable = False
+txtTimer = 0.0
+def updateBtnTimerStart():  # This should only be called ONCE during execution!
+    btnBgThread = threading.Thread(target=timerTickLoop)
+    btnBgThread.start()
+    if appcfg["general"]["auto_check_update"].lower() == "true": checkGithubForUpdate()
+def checkGithubForUpdate(event=None):
+    global updateAvailable
+    if not updateAvailable:
+        if txtTimer == 0:
+            try:
+                updateCheckBtn.config(state="disabled", bootstyle="primary")
+                updateCheckBtnTxtVar.set("Checking...")
+                checkerThread = threading.Thread(target=updateCheckWorker)
+                checkerThread.start()
+            except: pass
+    else:
+        updatePrompt = messagebox.askyesno(title="PyCHOSS Update", message="Download PyCHOSS " + latestRelease + "?\nClicking \"Yes\" will open GitHub in your default web browser.")
+        if updatePrompt:
+            webbrowser.open_new_tab(repoURL + "/releases/tag/" + latestRelease)
+def updateCheckWorker():
+    global updateAvailable
+    global latestRelease
+    global txtTimer
+    txtTimer = 67
+    print("\nChecking GitHub for update...")
+    try:
+        gHub = Github()
+        gTags = gHub.get_repo("Yoshibyl/PyCHOSS").get_tags()
+        tags = []
+        channel = "release"
+        try:
+            channel = updateChannel.get()
+        except: pass
+        updateAvailable = False
+        for gTag in gTags:
+            tags.append(gTag.name)
+            if not updateAvailable:
+                if "pre" in channel or "pre" not in gTag.name:
+                    if gTag.name != appVersion:
+                        latestRelease = gTag.name
+                        updateAvailable = True
+        if appVersion in tags and updateAvailable:  # only count latest version if current version is on github
+            print("Version %s found: " % tags[0])
+            print(repoURL + "/releases/tag/" + tags[0])
+        else:
+            print("No update available at this time (%s)" % appVersion)
+            updateAvailable = False
+        try:
+            if updateAvailable:
+                updateCheckBtnTxtVar.set("Update to " + latestRelease)
+                updateCheckBtn.config(state="enabled",bootstyle="success")
+                txtTimer = -1 # disable timer for resetting button text because update was found
+            else:
+                updateCheckBtnTxtVar.set("Already up to date: %s" % appVersion)
+                updateCheckBtn.config(state="enabled",bootstyle="info")
+                txtTimer = 6
+        except: pass
+    except:
+        print("An error occurred while trying to check GitHub")
+        updateAvailable = False
+        try:
+            txtTimer = 6
+            updateCheckBtnTxtVar.set("Unable to connect to GitHub")
+            updateCheckBtn.config(state="enabled",bootstyle="danger")
+        except: pass
+def timerTickLoop():
+    global exiting
+    global txtTimer
+    while exiting == False and txtTimer > -1:
+        time.sleep(0.1)
+        if txtTimer > 0:
+            txtTimer -= 0.1
+            if txtTimer < 0: txtTimer = 0
+        if txtTimer == 0:
+            try:
+                updateCheckBtnTxtVar.set("Check for update")
+            except: pass
+
 ## config.ini setup
 appcfg = configparser.ConfigParser(allow_no_value=True, strict=False, interpolation=None)
-
+defaultChannel = "release"
+if "pre" in appVersion: defaultChannel = "pre"
 defaultGeneral = {
-    "app_theme":"Dark",
-    "ip_address":"localhost",
-    "port":"4455",
-    "password":""
+    "app_theme": "Dark",
+    "ip_address": "localhost",
+    "port": "4455",
+    "password": "",
+    "auto_check_update": "true",
+    "update_channel": defaultChannel  # change to "release" on release
 }
 defaultCloneHero = {
     "currentsong_path": os.path.expanduser("~/.clonehero/currentsong.txt"),
@@ -47,12 +133,10 @@ defaultYargNightly = {
     "game_scene":"YARG Gameplay",
     "menu_scene":"YARG Menu"
 }
-
 if sys.platform == "win32":
     defaultCloneHero["currentsong_path"] = os.path.expanduser("~\\OneDrive\\Documents\\Clone Hero\\currentsong.txt")
     defaultYarg["currentsong_path"] = os.path.expanduser("~\\AppData\\LocalLow\\YARC\\YARG\\release\\currentSong.txt")
     defaultYargNightly["currentsong_path"] = os.path.expanduser("~\\AppData\\LocalLow\\YARC\\YARG\\nightly\\currentSong.txt")
-
 def update_config(reload=False):
     global appcfg
     if not os.path.exists("config.ini"):
@@ -117,7 +201,6 @@ def connectBtnClick(event=None):
             child.config(state="enabled")
         for child in nbFrameYARG.winfo_children():
             child.config(state="enabled")
-
 def onConnect(sock):
     global connStatusBool
     connStatusBool = True
@@ -171,7 +254,7 @@ def wsConnectionWorker():
         except:
             connStatusBool = False
             connStatusLbl.config(bootstyle="danger")
-            connStatusTxt.set("Connection failed.  Check OBS websocket settings and/or password")
+            connStatusTxt.set("Connection failed.  Check OBS websocket settings/password")
             connBtnTxtVar.set("Connect")
             connectBtn.config(state="enabled")
             connBtnTxtVar.set("Connect")
@@ -210,16 +293,19 @@ def wsConnectionWorker():
 def onCloseWindow(event=None):
     global client
     global connStatusBool
+    global exiting
     if connStatusBool:
         if messagebox.askokcancel("Warning", "There is an active connection to the OBS websocket.  Are you sure you want to exit?", icon="warning"):
             try:
                 client.disconnect()
             except:
                 print("Error trying to disconnect websocket")
+            exiting = True
             update_config()
             root.destroy()
             exit()
     else:
+        exiting = True
         update_config()
         root.destroy()
         exit()
@@ -290,7 +376,10 @@ gameSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["game_scene"])
 menuSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["menu_scene"])
 gameSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["game_scene"])
 menuSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["menu_scene"])
+updateCheckBtnTxtVar = tkinter.StringVar(root, "Check for update")
 exiting = False
+autoCheckUpdate = tkinter.BooleanVar(root, appcfg["general"]["auto_check_update"] == "true")
+updateChannel = tkinter.StringVar(root, appcfg["general"]["update_channel"])
 
 whichTabMode = "Clone Hero"
 
@@ -352,12 +441,14 @@ caseSensitiveInfoLbl.grid(row=2, column=0)
 
 # Theme select
 themeFrame = tkinter.Frame(root, padx=10, pady=10)
-themeLbl = tb.Label(themeFrame, text="Application theme:  ")
+updateCheckBtn = tb.Button(themeFrame, textvariable=updateCheckBtnTxtVar, command=checkGithubForUpdate, width=30, bootstyle="primary")
+themeLbl = tb.Label(themeFrame, text="   App theme:  ")
 themeOption = tb.OptionMenu(themeFrame, themeTxtVar, "","Dark","Black","Light", command=updateTheme)
 updateTheme()
-themeLbl.grid(row=0,column=0,sticky=W)
-themeOption.grid(row=0,column=1,sticky=W)
-themeFrame.grid(row=3, column=0,sticky=W)
+updateCheckBtn.grid(row=0,column=0)
+themeLbl.grid(row=0,column=1,sticky=W)
+themeOption.grid(row=0,column=2,sticky=W)
+themeFrame.grid(row=3, column=0)
 
 # Save config button
 saveBtn = ttk.Button(root, text="Save configuration", width=50, command=saveBtnClick)
@@ -373,6 +464,7 @@ connectBtn.grid(row=3, column=1, ipady=18, pady=10)
 root.geometry()
 root.resizable(False,False)
 client = obsws()
+root.after(1, updateBtnTimerStart)
 
 # main loop
 root.mainloop()
