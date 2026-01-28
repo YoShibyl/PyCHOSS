@@ -16,7 +16,7 @@ from ttkbootstrap.constants import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.0-pre3"
+appVersion = "v1.1.0-pre4"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -38,9 +38,10 @@ def checkGithubForUpdate(event=None):
             checking = True
             checkerThread = threading.Thread(target=updateCheckWorker)
             checkerThread.start()
-            
+            updateBtn.config(state="disabled", bootstyle="primary")
+            updateBtnTxtVar.set("Checking...")
     else:
-        updatePrompt = messagebox.askyesno(title="PyCHOSS Update", message="Download PyCHOSS " + latestRelease + "?\nClicking \"Yes\" will open GitHub in your default web browser.")
+        updatePrompt = messagebox.askyesno(title="PyCHOSS Update", message="Download PyCHOSS " + latestRelease + "?\n\nClicking \"Yes\" will open GitHub in your default web browser.")
         if updatePrompt:
             webbrowser.open_new_tab(repoURL + "/releases/tag/" + latestRelease)
 def updateCheckWorker():
@@ -48,6 +49,8 @@ def updateCheckWorker():
     global latestRelease
     global txtTimer
     global checking
+    global updateChannel
+    global appVersion
     txtTimer = 67
     print("\nChecking GitHub for update...")
     try:
@@ -57,20 +60,20 @@ def updateCheckWorker():
         channel = "stable"
         try:
             channel = updateChannel.get()
-            updateBtn.config(state="disabled", bootstyle="primary")
-            updateBtnTxtVar.set("Checking...")
         except: pass
-        
+        # appVersion = "v1.1.0-pre1" # TESTING UPDATER, comment this line when not in use
         updateAvailable = False
         for gTag in gTags:
-            tags.append(gTag.name)
+            tag = gTag.name.lower()
+            tags.append(tag)
             if updateAvailable == False:
-                if "pre" in channel.lower() or "pre" not in gTag.name:
-                    if gTag.name != appVersion and appVersion != tags[0]:
-                        latestRelease = tags[0]
+                if "pre" in channel.lower() or "pre" not in tag:
+                    if tag != appVersion and appVersion != tag:
+                        latestRelease = tag
                         updateAvailable = True
-                if "pre" not in channel.lower() and "pre" in gTag.name:
-                    tags.remove(gTag.name)
+                if "pre" not in channel.lower() and "pre" in tag:
+                    tags.remove(tag)
+                    updateAvailable = False
         if appVersion in tags and updateAvailable == True:  # only count latest version if current version is on github
             checking = False
             print("Version %s found: " % latestRelease)
@@ -100,7 +103,6 @@ def timerTickLoop():
     global exiting
     global txtTimer
     if appcfg["general"]["auto_check_update"].lower() == "true":
-        time.sleep(0.1)
         checkGithubForUpdate()
     while exiting == False and txtTimer > -1:
         time.sleep(0.1)
@@ -492,7 +494,7 @@ connectBtn.grid(row=4, column=1, ipady=18, pady=10)
 root.geometry()
 root.resizable(False,False)
 client = obsws()
-root.after(100, updateBtnTimerStart)
+root.after(0, updateBtnTimerStart)
 
 # main loop
 root.mainloop()
