@@ -10,7 +10,7 @@ This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automat
 
 ## Requirements
 - Windows or Linux (tested on Arch Linux with KDE Plasma, as well as Windows 11)
-- [OBS](https://obsproject.com) v28 or newer, with at least two scenes set up (one for gameplay, and one for menus)
+- [OBS Studio](https://obsproject.com) v28 or newer, with at least two scenes set up (one for gameplay, and one for menus)
 - [Clone Hero](https://clonehero.net) or [YARG](https://yarg.in)
 
 ## Setup
@@ -34,7 +34,7 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 ## Building (using [PyInstaller](https://pyinstaller.org/en/stable/))
 First and foremost, download the source code for this repo via the green Code button towards the top of the page when viewing this repo.
 
-### Linux binary from Linux host
+### Linux binary (from Linux machine)
 1) If you don't have Python and `pip` set up, you'll need the latest version of both installed on your system (instructions vary by distro, so look it up, I guess)
 
 I also recommend setting up a [virtual environment](https://docs.python.org/3/library/venv.html) in the directory of the source code to avoid certain issues.
@@ -57,10 +57,37 @@ pyinstaller --onefile --noconsole pychoss.py
 ```
 Once complete, the Linux binary will be located in the `dist` directory.
 
-### Windows executable from Windows host
-*soon™*
+### Windows executable (from Linux machine via Wine)
+If you already have 64-bit Python set up in Wine, skip to step 3.
 
-Note: It is currently impossible to build a Linux binary from a Windows machine, as far as I'm aware.  However, building a Windows executable from a Linux machine *might* be possible using Wine, according to [this blog post](https://www.makeworld.space/2021/10/linux-wine-pyinstaller.html).
+1) Install [Wine](https://www.winehq.org/).  **Note:** If you're unable to install Wine the traditional way, you might end up resorting to installing Wine's Flatpak from Flathub.  If you somehow are in this situation, **replace `wine` in the commands below with `flatpak run org.winehq.Wine` etc.**
+2) Download the Windows installer of [Python 3.14.2](https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe) (click the link), and run it within Wine:
+```
+wine ./python-3.14.2-amd64.exe
+```
+  - **IMPORTANT:** Make sure you do these things when installing Python in Wine:
+    - Add Python to PATH
+    - Customize installation
+    - Install for all users as Administrator
+    - Set the Python install folder to `C:\Python3\`
+  - To check that Python is installed correctly, run `wine C:/Python3/python.exe --version`
+3) Update `pip`, and then install the required libraries from `requirements.txt` as well as `pyinstaller`:
+```
+wine C:/Python3/python.exe -m pip install --upgrade pip
+wine C:/Python3/python.exe -m pip install -r requirements.txt
+wine C:/Python3/python.exe -m pip install pyinstaller
+```
+4) Run the `build-windows.bat` Batch file:
+```
+wine build-windows.bat
+```
+- Note: You may see a bunch of warning/debug messages.  This is probably normal, and it shouldn't be a huge deal as long as you end up with a working `pychoss.exe` file in the `dist` folder.
+5) Test the build to see if it launches properly, either via Wine or a Windows machine.  If it shows the user interface, then you've successfully built it.
+
+### Windows executable from Windows host
+*soon™?*
+
+Note: It is currently impossible to build a Linux binary from a Windows machine, as far as I'm aware.  However, building a Windows executable from a Linux machine is possible using Wine (see above).
 
 ## Credits and References
 - [obs-websocket-py](https://github.com/Elektordi/obs-websocket-py) : WebSocket API used for interfacing with OBS
@@ -69,5 +96,6 @@ Note: It is currently impossible to build a Linux binary from a Windows machine,
 - [Clone Hero](https://clonehero.net/)
 - [YARG](https://yarg.in/)
 - Countless Google searches leading me to various forums and blogs that helped me develop this script
+  - including [this blog post](https://www.makeworld.space/2021/10/linux-wine-pyinstaller.html) which helped me build the Windows version without having to boot into Windows.
 
 If you find this program useful for your Twitch streams, then I thank you for using it.
