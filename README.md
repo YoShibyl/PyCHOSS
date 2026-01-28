@@ -1,11 +1,19 @@
 # Python Clone Hero OBS Scene Switcher (PyCHOSS)
 This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automatic OBS scene switching tool for [Clone Hero](https://clonehero.net/) / [YARG](https://yarg.in/) players.  It works by detecting changes in the `currentsong.txt` file of the game, which lets the program determine when to switch to/from the specified scenes via [OBS websockets](https://github.com/Elektordi/obs-websocket-py).
 
+## Screenshots (v1.1.0)
+Taken on Arch Linux with KDE Plasma running on a Steam Deck
+<details open>
+  <summary>Dark theme</summary>
+  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/5f69937e-480b-4a05-900c-c60e427a5d60" />
+</details>
 <details>
-  <summary>Screenshots (v1.0.0)</summary>
-  <img width="946" height="359" alt="image" src="https://github.com/user-attachments/assets/5c1e0eee-c3a1-43c6-9cba-b63e004bf531" />
-  <img width="946" height="359" alt="image" src="https://github.com/user-attachments/assets/64190f93-b988-4230-a611-c02587f94295" />
-  <img width="946" height="359" alt="image" src="https://github.com/user-attachments/assets/310a06c5-929a-4988-a2a0-db01e0cd1877" />
+  <summary>Black theme</summary>
+  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/5b90c9e4-c4b8-4669-bb2a-81fff232502a" />
+</details>
+<details>
+  <summary>Light theme</summary>
+  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/544cff0a-6d15-4922-8da4-5123d85024b3" />
 </details>
 
 ## Requirements
@@ -14,7 +22,7 @@ This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automat
 - [Clone Hero](https://clonehero.net) or [YARG](https://yarg.in)
 
 ## Setup
-Download and extract your platform's build of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
+Download your platform's build of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
 
 In order to use PyCHOSS, you need to configure your OBS websocket server.
 
@@ -23,6 +31,11 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 2) ***It is strongly recommended to use a password for authentication, preferably one that is generated.***  To do this, check the **Enable Authentication** box, click **Generate Password**, and then click **Apply**.  You only need to do this once.
 3) Click the **Show Connect Info** button, and copy the password that was generated.  You'll need this to connect PyCHOSS to the websocket server.
 4) *(optional)* If connecting to a WebSocket on a different PC running OBS, you'll need the local IP address of that PC.  Otherwise, leave the IP in PyCHOSS as `localhost`, `127.0.0.1`, or `0.0.0.0`
+
+> [!IMPORTANT]
+> It really goes without saying, but do NOT give your PyCHOSS installation's `config.ini` to ANYONE!
+> 
+> This is because it contains your OBS websocket server password (if any) in plaintext.
 
 ### PyCHOSS setup
 1) Paste the password for your OBS websocket in the password box by selecting it and pressing Ctrl+V (right-clicking will *not* work)
@@ -39,7 +52,9 @@ First and foremost, download the source code for this repo via the green Code bu
 
 I also recommend setting up a [virtual environment](https://docs.python.org/3/library/venv.html) in the directory of the source code to avoid certain issues.
  - If you do this, you'll need to reactivate the venv every time you open the terminal
-   - Example: `source (venv_directory)/bin/activate`
+ - Example of how to set up a venv:
+     1) `python -m venv .venv` (only run this once)
+     2) `source .venv/bin/activate` (run this every time you open terminal)
 
 You may also need to install some extra libraries in order to use pyinstaller.  See [this page](https://pyinstaller.org/en/stable/requirements.html#gnu-linux) for more info.
 
