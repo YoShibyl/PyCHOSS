@@ -35,4 +35,5 @@ exe = EXE(
     target_arch='64bit',
     codesign_identity=None,
     entitlements_file=None,
+    icon=['icon.ico'],
 )

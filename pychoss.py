@@ -13,10 +13,11 @@ from tkinter import ttk
 from tkinter import messagebox
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from ttkbootstrap.validation import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.0-pre5"
+appVersion = "v1.1.0"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -25,17 +26,17 @@ print("Created by Yoshibyl (Yoshi) :: https://github.com/Yoshibyl/")
 
 ## Update checker stuff
 updateAvailable = False
-checking = False
+isChecking = False
 txtTimer = 0.0
 def updateBtnTimerStart():  # This should only be called ONCE during execution!
     btnBgThread = threading.Thread(target=timerTickLoop)
     btnBgThread.start()
 def checkGithubForUpdate(event=None):
     global updateAvailable
-    global checking
+    global isChecking
     if not updateAvailable:
         if txtTimer == 0.0:
-            checking = True
+            isChecking = True
             checkerThread = threading.Thread(target=updateCheckWorker)
             checkerThread.start()
             updateBtn.config(state="disabled", bootstyle="primary")
@@ -48,10 +49,10 @@ def updateCheckWorker():
     global updateAvailable
     global latestRelease
     global txtTimer
-    global checking
+    global isChecking
     global updateChannel
     global appVersion
-    txtTimer = 67
+    txtTimer = 67  # haha six seven (please laugh)
     print("\nChecking GitHub for update...")
     try:
         gHub = Github()
@@ -61,7 +62,6 @@ def updateCheckWorker():
         try:
             channel = updateChannel.get()
         except: pass
-        # appVersion = "v1.1.0-pre1" # TESTING UPDATER, comment this line when not in use
         updateAvailable = False
         for gTag in gTags:
             tag = gTag.name.lower()
@@ -71,7 +71,7 @@ def updateCheckWorker():
                     tags.remove(tag)
         latestRelease = tags[0]
         if appVersion in tags and tags[0] != appVersion:  # only count latest version if current version is on github
-            checking = False
+            isChecking = False
             print("Version %s found: " % latestRelease)
             print(repoURL + "/releases/tag/" + latestRelease)
             updateAvailable = True
@@ -80,11 +80,11 @@ def updateCheckWorker():
             updateAvailable = False
         try:
             if updateAvailable:
-                updateBtnTxtVar.set("Update to " + latestRelease)
+                updateBtnTxtVar.set("Update available: " + latestRelease)
                 updateBtn.config(state="enabled",bootstyle="success")
                 txtTimer = -1 # disable timer for resetting button text because update was found
             else:
-                updateBtnTxtVar.set("Latest version: %s" % appVersion)
+                updateBtnTxtVar.set("On the latest version: %s" % appVersion)
                 updateBtn.config(state="enabled",bootstyle="info")
                 txtTimer = 6
         except: pass
@@ -96,6 +96,7 @@ def updateCheckWorker():
             updateBtnTxtVar.set("Can't connect to GitHub")
             updateBtn.config(state="enabled",bootstyle="danger")
         except: pass
+    isChecking = False
 def timerTickLoop():
     global exiting
     global txtTimer
@@ -179,7 +180,11 @@ update_config(True)
 
 # connect/disconnect button click
 def connectBtnClick(event=None):
+    global cooldownTxtVar
+    global cooldownSpin
+    global cooldown
     global wsThread
+    fixCooldownTxt()
     if connStatusBool == False:
         connBtnTxtVar.set("Connecting...")
         connectBtn.config(state="disabled")
@@ -227,6 +232,7 @@ def wsConnectionWorker():
     global client
     global whichTabMode
     global connStatusBool
+    global cooldown
     ip = ipVar.get()
     port = portVar.get()
     pw = passVar.get()
@@ -269,10 +275,10 @@ def wsConnectionWorker():
             while connStatusBool == True:
                 new_size = os.path.getsize(csPath)
                 if old_size != new_size:
+                    cooldown = cooldownChangeHandler()
                     if new_size == 0:  # menu scene
-                        if os.path.getsize(csPath) == 0:
-                            client.call(requests.SetCurrentProgramScene(sceneName=menuScene))
-                            if cooldown > 0: time.sleep(cooldown)
+                        client.call(requests.SetCurrentProgramScene(sceneName=menuScene))
+                        if cooldown > 0: time.sleep(cooldown)
                     else:  # gameplay scene
                         client.call(requests.SetCurrentProgramScene(sceneName=gameScene))
                         if cooldown > 0: time.sleep(cooldown)
@@ -294,6 +300,10 @@ def onCloseWindow(event=None):
     global client
     global connStatusBool
     global exiting
+    global cooldownTxtVar
+    global cooldownSpin
+    global cooldown
+    fixCooldownTxt()
     if connStatusBool == True:
         if messagebox.askyesno("Warning", "There is an active connection to the OBS websocket.  Are you sure you want to exit?", icon="warning"):
             try:
@@ -311,6 +321,11 @@ def onCloseWindow(event=None):
         sys.exit()
 # save config button click
 def saveBtnClick(event=None):
+    global cooldownTxtVar
+    global cooldownSpin
+    global cooldown
+    global appcfg
+    fixCooldownTxt()
     appcfg["general"]["ip_address"] = ipVar.get()
     appcfg["general"]["port"] = portVar.get()
     appcfg["general"]["password"] = passVar.get()
@@ -363,14 +378,35 @@ def browseForTxt_YARGnightly(event=None):
 # cooldown spinbox validation
 def isStringFloat(string_ = ""):
     try:
-        float(string_)
+        float_ = float(string_)
     except:
         return False
     return True
 # cooldown changed
-def onCooldownChanged(event=None):
+def cooldownChangeHandler(event=None):
     global cooldown
-    if isStringFloat(cooldownTxtVar.get()): cooldown = float(cooldownTxtVar.get())
+    global cooldownTxtVar
+    fixCooldownTxt()
+    if isStringFloat(cooldownTxtVar.get()):
+        cooldown = float(cooldownTxtVar.get())
+        if cooldown > 30.0: cooldown = 30.0
+        elif cooldown < 0.0: cooldown = 0.0
+        return cooldown
+# cooldown validation
+def fixCooldownTxt(a=None,b=None,c=None):
+    global cooldownTxtVar
+    global cooldown
+    cooldownStr = cooldownTxtVar.get().replace("-","")
+    if isStringFloat(cooldownStr) == False:
+        cooldownStr = "1.0"
+        cooldown = 1.0
+        cooldownTxtVar.set(cooldownStr)
+    else:
+        cooldown = float(cooldownStr)
+        if cooldown > 30.0: cooldown = 30.0
+        elif cooldown < 0.0: cooldown = 0.0
+        cooldownStr = f"{cooldown:0.1f}"
+        cooldownTxtVar.set(cooldownStr)
 
 ## initialize main window and stuff
 root = tb.Window(title="PyCHOSS " + appVersion, themename="darkly")
@@ -399,12 +435,11 @@ autoCheckUpdateVar = tkinter.BooleanVar(root, appcfg["general"]["auto_check_upda
 updateChannel = tkinter.StringVar(root, appcfg["general"]["update_channel"])
 cooldownTxtVar = tkinter.StringVar(root, appcfg["general"]["cooldown_seconds"])
 cooldown = 0.0
-if isStringFloat(cooldownTxtVar.get()): cooldown = float(cooldownTxtVar.get())
+if isStringFloat(cooldownTxtVar.get()):
+    cooldown = float(cooldownTxtVar.get())
+fixCooldownTxt()
 
 whichTabMode = "Clone Hero"
-
-## right-click menus
-# later?
 
 ## Layout stuff
 # Scene Switcher settings
@@ -467,7 +502,8 @@ updateTheme()
 themeLbl.grid(row=0,column=0,sticky=W)
 themeOption.grid(row=0,column=1,sticky=W, padx=10,pady=10)
 cooldownLbl = tb.Label(genSettingsFrame, text="  Scene cooldown (sec): ").grid(row=0,column=2,columnspan=2,sticky=W)
-cooldownSpin = ttk.Spinbox(genSettingsFrame, increment=0.1, from_=0, to=30, command=onCooldownChanged, validatecommand=isStringFloat, textvariable=cooldownTxtVar, width=4)
+cooldownSpin = ttk.Spinbox(genSettingsFrame, increment=0.1, from_=0, to=30, command=cooldownChangeHandler, validatecommand=isStringFloat, textvariable=cooldownTxtVar, width=4)
+# cooldownTxtVar.trace("w", fixCooldownTxt)
 cooldownSpin.grid(row=0,column=4,sticky=W)
 updateBtn = tb.Button(genSettingsFrame, textvariable=updateBtnTxtVar, command=checkGithubForUpdate, width=29)
 updateBtn.grid(row=1,column=0,columnspan=3,sticky=SW)
