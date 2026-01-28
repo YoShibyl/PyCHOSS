@@ -6,7 +6,7 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['ttkbootstrap', 'obs-websocket-py', 'pygithub'],
+    hiddenimports=['ttkbootstrap', 'obs-websocket-py', 'PIL._tkinter_finder', 'pygithub'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,7 +32,7 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch=None,
+    target_arch='64bit',
     codesign_identity=None,
     entitlements_file=None,
 )
