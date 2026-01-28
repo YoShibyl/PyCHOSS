@@ -53,15 +53,17 @@ pip install -U pyinstaller
 ```
 4) Finally, to build the binary:
 ```
-pyinstaller --onefile --noconsole pychoss.py
+pyinstaller --onefile --noconsole --hidden-import PIL._tkinter_finder pychoss.py
 ```
+The parameter `--hidden-import PIL._tkinter_finder` is required in order for the build to run, at least according to my testing.
+
 Once complete, the Linux binary will be located in the `dist` directory.
 
 ### Windows executable (from Linux machine via Wine)
 If you already have 64-bit Python set up in Wine, skip to step 3.
 
 1) Install [Wine](https://www.winehq.org/).  **Note:** If you're unable to install Wine the traditional way, you might end up resorting to installing Wine's Flatpak from Flathub.  If you somehow are in this situation, **replace `wine` in the commands below with `flatpak run org.winehq.Wine` etc.**
-2) Download the Windows installer of [Python 3.14.2](https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe) (click the link), and run it within Wine:
+2) Download the 64-bit Windows installer of [Python 3.14.2](https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe), and run it within Wine:
 ```
 wine ./python-3.14.2-amd64.exe
 ```
@@ -93,9 +95,9 @@ Note: It is currently impossible to build a Linux binary from a Windows machine,
 - [obs-websocket-py](https://github.com/Elektordi/obs-websocket-py) : WebSocket API used for interfacing with OBS
 - [ttkbootstrap](https://github.com/israel-dryer/ttkbootstrap) : Library used for enhancing the UI with theme support
 - [PyInstaller](https://pyinstaller.org/en/stable/) : Used for compiling single-file binaries for release
-- [Clone Hero](https://clonehero.net/)
-- [YARG](https://yarg.in/)
+- [Clone Hero](https://clonehero.net/) : Clone of Guitar Hero games made in Unity Engine
+- [YARG](https://yarg.in/) : Clone of Rock Band games, also made in Unity Engine
 - Countless Google searches leading me to various forums and blogs that helped me develop this script
   - including [this blog post](https://www.makeworld.space/2021/10/linux-wine-pyinstaller.html) which helped me build the Windows version without having to boot into Windows.
 
-If you find this program useful for your Twitch streams, then I thank you for using it.
+If you find this program useful for your Twitch streams, then thanks for using it.  I hope you get good FCs, and rock on!
