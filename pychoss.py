@@ -14,12 +14,11 @@ from tkinter import filedialog
 from tkinter import ttk
 from tkinter import messagebox
 import ttkbootstrap as tb
-from ttkbootstrap.widgets.tableview import Tableview
 from ttkbootstrap.constants import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.0-pre1"
+appVersion = "v1.1.0-pre2"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -64,14 +63,16 @@ def updateCheckWorker():
         updateAvailable = False
         for gTag in gTags:
             tags.append(gTag.name)
-            if not updateAvailable:
+            if updateAvailable == False:
                 if "pre" in channel or "pre" not in gTag.name:
-                    if gTag.name != appVersion:
-                        latestRelease = gTag.name
+                    if gTag.name != appVersion and appVersion != tags[0]:
+                        latestRelease = tags[0]
                         updateAvailable = True
-        if appVersion in tags and updateAvailable:  # only count latest version if current version is on github
-            print("Version %s found: " % tags[0])
-            print(repoURL + "/releases/tag/" + tags[0])
+                if "pre" not in channel and "pre" in gTag.name:
+                    tags.remove(gTag.name)
+        if appVersion in tags and updateAvailable == True:  # only count latest version if current version is on github
+            print("Version %s found: " % latestRelease)
+            print(repoURL + "/releases/tag/" + latestRelease)
         else:
             print("No update available at this time (%s)" % appVersion)
             updateAvailable = False
@@ -303,12 +304,12 @@ def onCloseWindow(event=None):
             exiting = True
             update_config()
             root.destroy()
-            exit()
+            # exit()  # undefined for some reason?
     else:
         exiting = True
         update_config()
         root.destroy()
-        exit()
+        # exit()
 # save config button click
 def saveBtnClick(event=None):
     appcfg["general"]["ip_address"] = ipVar.get()
