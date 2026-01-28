@@ -16,7 +16,7 @@ from ttkbootstrap.constants import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.0-pre4"
+appVersion = "v1.1.0-pre5"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -66,18 +66,15 @@ def updateCheckWorker():
         for gTag in gTags:
             tag = gTag.name.lower()
             tags.append(tag)
-            if updateAvailable == False:
-                if "pre" in channel.lower() or "pre" not in tag:
-                    if tag != appVersion and appVersion != tag:
-                        latestRelease = tag
-                        updateAvailable = True
+            if tag != appVersion:
                 if "pre" not in channel.lower() and "pre" in tag:
                     tags.remove(tag)
-                    updateAvailable = False
-        if appVersion in tags and updateAvailable == True:  # only count latest version if current version is on github
+        latestRelease = tags[0]
+        if appVersion in tags and tags[0] != appVersion:  # only count latest version if current version is on github
             checking = False
             print("Version %s found: " % latestRelease)
             print(repoURL + "/releases/tag/" + latestRelease)
+            updateAvailable = True
         else:
             print("No update available at this time (%s)" % appVersion)
             updateAvailable = False
