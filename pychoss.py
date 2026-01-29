@@ -17,7 +17,7 @@ from ttkbootstrap.validation import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.0"
+appVersion = "v1.1.1"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -446,28 +446,41 @@ whichTabMode = "Clone Hero"
 nb = ttk.Notebook(root, padding=0, height=140)
 # Clone Hero
 nbFrameCH = ttk.Frame(nb, padding=10)
-currSongBrowseCH = ttk.Button(nbFrameCH, text="Browse currentsong.txt", command=browseForTxt_CH).grid(row=0,column=0,pady=2)
-currSongEntryCH = ttk.Entry(nbFrameCH, textvariable=currSongTxtVar_CH,width=35).grid(row=0,column=1,pady=2)
-lblGameSceneCH = ttk.Label(nbFrameCH, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
-gameSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=gameSceneTxtVar_CH, width=35).grid(row=1,column=1,padx=10,pady=2,sticky=E)
-lblMenuSceneCH = ttk.Label(nbFrameCH, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
-menuSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=menuSceneTxtVar_CH, width=35).grid(row=2,column=1,padx=10,pady=2,sticky=E)
+currSongBrowseCH = ttk.Button(nbFrameCH, text="Browse currentsong.txt", command=browseForTxt_CH, width=20)
+currSongBrowseCH.grid(row=0,column=0,pady=2)
+currSongEntryCH = ttk.Entry(nbFrameCH, textvariable=currSongTxtVar_CH,width=35)
+currSongEntryCH.grid(row=0,column=1,pady=2)
+ttk.Label(nbFrameCH, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
+gameSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=gameSceneTxtVar_CH, width=35)
+gameSceneEntryCH.grid(row=1,column=1,padx=10,pady=2,sticky=E)
+ttk.Label(nbFrameCH, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
+menuSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=menuSceneTxtVar_CH, width=35)
+menuSceneEntryCH.grid(row=2,column=1,padx=10,pady=2,sticky=E)
 # YARG stable
 nbFrameYARG = ttk.Frame(nb, padding=10)
-currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG).grid(row=0,column=0,pady=2)
+currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG, width=20)
+currSongBrowseYARG.grid(row=0,column=0,pady=2)
 currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=35).grid(row=0,column=1,pady=2)
 lblGameSceneYARG = ttk.Label(nbFrameYARG, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
-gameSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=gameSceneTxtVar_YARG, width=35).grid(row=1,column=1,padx=10,pady=2,sticky=E)
+gameSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=gameSceneTxtVar_YARG, width=35)
+gameSceneEntryYARG.grid(row=1,column=1,padx=10,pady=2,sticky=E)
 lblMenuSceneYARG = ttk.Label(nbFrameYARG, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
-menuSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=menuSceneTxtVar_YARG, width=35).grid(row=2,column=1,padx=10,pady=2,sticky=E)
+menuSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=menuSceneTxtVar_YARG, width=35)
+menuSceneEntryYARG.grid(row=2,column=1,padx=10,pady=2,sticky=E)
 # YARG nightly
 nbFrameYARGnightly = ttk.Frame(nb, padding=10)
-currSongBrowseYARG = ttk.Button(nbFrameYARGnightly, text="Browse currentSong.txt", command=browseForTxt_YARGnightly).grid(row=0,column=0,pady=2)
-currSongEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=currSongTxtVar_YARGnightly,width=35).grid(row=0,column=1,pady=2)
-lblGameSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
-gameSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=gameSceneTxtVar_YARGnightly, width=35).grid(row=1,column=1,padx=10,pady=2,sticky=E)
-lblMenuSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
-menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuSceneTxtVar_YARGnightly, width=35).grid(row=2,column=1,padx=10,pady=2,sticky=E)
+currSongBrowseYARGnightly = ttk.Button(nbFrameYARGnightly, text="Browse currentSong.txt", command=browseForTxt_YARGnightly, width=20)
+currSongBrowseYARGnightly.grid(row=0,column=0,pady=2)
+currSongEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=currSongTxtVar_YARGnightly,width=35)
+currSongEntryYARGnightly.grid(row=0,column=1,pady=2)
+lblGameSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Gameplay Scene: ")
+lblGameSceneYARGnightly.grid(row=1,column=0,padx=10,pady=2,sticky=W)
+gameSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=gameSceneTxtVar_YARGnightly, width=35)
+gameSceneEntryYARGnightly.grid(row=1,column=1,padx=10,pady=2,sticky=E)
+lblMenuSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Menu Scene: ")
+lblMenuSceneYARGnightly.grid(row=2,column=0,padx=10,pady=2,sticky=W)
+menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuSceneTxtVar_YARGnightly, width=35)
+menuSceneEntryYARGnightly.grid(row=2,column=1,padx=10,pady=2,sticky=E)
 nb.add(nbFrameCH, text="Clone Hero")
 nb.add(nbFrameYARG, text="YARG stable")
 nb.add(nbFrameYARGnightly, text="YARG nightly")
