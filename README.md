@@ -1,19 +1,19 @@
 # Python Clone Hero OBS Scene Switcher (PyCHOSS)
 This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automatic OBS scene switching tool for [Clone Hero](https://clonehero.net/) / [YARG](https://yarg.in/) players.  It works by detecting changes in the `currentsong.txt` file of the game, which lets the program determine when to switch to/from the specified scenes via [OBS websockets](https://github.com/Elektordi/obs-websocket-py).
 
-## Screenshots (v1.1.0)
+## Screenshots (v1.2.0)
 Taken on Arch Linux with KDE Plasma running on a Steam Deck
 <details open>
   <summary>Dark theme</summary>
-  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/5f69937e-480b-4a05-900c-c60e427a5d60" />
+  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/2688872a-1ead-4068-aed7-7b7590936751" />
 </details>
 <details>
   <summary>Black theme</summary>
-  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/5b90c9e4-c4b8-4669-bb2a-81fff232502a" />
+  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/2cb01789-d12c-4f9d-ba3e-37e79f8c285a" />
 </details>
 <details>
   <summary>Light theme</summary>
-  <img width="1014" height="415" alt="image" src="https://github.com/user-attachments/assets/544cff0a-6d15-4922-8da4-5123d85024b3" />
+  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/eb10de17-e320-44bd-b7f2-25430c3eda98" />
 </details>
 
 ## Requirements
