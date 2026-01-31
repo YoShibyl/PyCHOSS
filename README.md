@@ -39,10 +39,15 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 
 ### PyCHOSS setup
 1) Paste the password for your OBS websocket in the password box by selecting it and pressing Ctrl+V (right-clicking will *not* work)
-2) Select which game you're playing via the tabs in the upper-left corner of the window.  If the `currentsong.txt` file isn't found, you might need to browse for it manually.
+2) Select which game you're playing via the tabs in the upper-left corner of the window.  If the `currentsong.txt` file isn't found, you might need to browse for it manually.  Also, when playing Clone Hero, *make sure to enable the **Export Current Song** setting in-game!* (see Clone Hero setup below)
 3) Change the scene names according to the scene names you have in OBS.  **Note that the scene names are case-sensitive!**
 4) Click **Save configuration** to save your settings
 5) Click the **Connect** button, and you should be all set!
+
+### Clone Hero setup
+In order for PyCHOSS to switch scenes when playing Clone Hero, the Export Current Song setting must be enabled in settings.
+
+<img width="640" height="360" alt="image" src="https://github.com/user-attachments/assets/c1ead2f0-20f9-4e65-87a7-21cd59e7b0be" />
 
 ## Building (using [PyInstaller](https://pyinstaller.org/en/stable/))
 First and foremost, download the source code for this repo via the green Code button towards the top of the page when viewing this repo.
