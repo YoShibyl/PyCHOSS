@@ -14,10 +14,11 @@ from tkinter import messagebox
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from ttkbootstrap.validation import *
+from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.1.1"
+appVersion = "v1.2.0"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -83,6 +84,7 @@ def updateCheckWorker():
                 updateBtnTxtVar.set("Update available: " + latestRelease)
                 updateBtn.config(state="enabled",bootstyle="success")
                 txtTimer = -1 # disable timer for resetting button text because update was found
+                updateToolTip.text = "Click to go to GitHub and download PyCHOSS " + latestRelease
             else:
                 updateBtnTxtVar.set("On the latest version: %s" % appVersion)
                 updateBtn.config(state="enabled",bootstyle="info")
@@ -123,7 +125,8 @@ defaultGeneral = {
     "password": "",
     "auto_check_update": "true",
     "update_channel": defaultChannel,  # Changes to "Stable" on release, or "PreRelease" in pre-release builds
-    "cooldown_seconds": "1.0"
+    "cooldown_seconds": "1.0",
+    "afk_scene": "AFK"
 }
 defaultCloneHero = {
     "currentsong_path": os.path.expanduser("~/.clonehero/currentsong.txt"),
@@ -234,7 +237,9 @@ def wsConnectionWorker():
     global connStatusBool
     global cooldown
     ip = ipVar.get()
-    port = portVar.get()
+    portStr = portVar.get()
+    port = 4455
+    if isStringInt(portStr): port = int(portStr)
     pw = passVar.get()
     csPath = ""
     gameScene = ""
@@ -276,17 +281,24 @@ def wsConnectionWorker():
                 new_size = os.path.getsize(csPath)
                 if old_size != new_size:
                     cooldown = cooldownChangeHandler()
-                    if new_size == 0:  # menu scene
-                        client.call(requests.SetCurrentProgramScene(sceneName=menuScene))
-                        if cooldown > 0: time.sleep(cooldown)
-                    else:  # gameplay scene
-                        client.call(requests.SetCurrentProgramScene(sceneName=gameScene))
-                        if cooldown > 0: time.sleep(cooldown)
+                    currentScene = " "
+                    try:
+                        curSceneReq = client.call(requests.GetCurrentProgramScene())
+                        currentScene = curSceneReq.datain["sceneName"].strip()
+                    except: pass
+                    afkScene = afkSceneTxtVar_global.get().strip()
+                    if (currentScene != afkScene and afkScene != "") or afkScene == "":
+                        if new_size == 0:  # menu scene
+                            client.call(requests.SetCurrentProgramScene(sceneName=menuScene))
+                            if cooldown > 0: time.sleep(cooldown)
+                        else:  # gameplay scene
+                            client.call(requests.SetCurrentProgramScene(sceneName=gameScene))
+                            if cooldown > 0: time.sleep(cooldown)
                     old_size = new_size
                 time.sleep(0.1)
     else:
         connStatusLbl.config(bootstyle="warning")
-        connStatusTxt.set("currentsong.txt not found!")
+        connStatusTxt.set("currentsong.txt not found! (%s)" % whichTabMode)
         connBtnTxtVar.set("Connect")
         connectBtn.config(state="enabled")
         for child in nbFrameCH.winfo_children():
@@ -332,6 +344,7 @@ def saveBtnClick(event=None):
     appcfg["general"]["auto_check_update"] = "true" if autoCheckUpdateVar.get() == True else "false"
     appcfg["general"]["update_channel"] = updateChannel.get()
     appcfg["general"]["cooldown_seconds"] = cooldownTxtVar.get()
+    appcfg["general"]["afk_scene"] = afkSceneTxtVar_global.get()
     appcfg["clonehero"]["currentsong_path"] = currSongTxtVar_CH.get()
     appcfg["yarg"]["currentsong_path"] = currSongTxtVar_YARG.get()
     appcfg["yarg_nightly"]["currentsong_path"] = currSongTxtVar_YARGnightly.get()
@@ -382,6 +395,19 @@ def isStringFloat(string_ = ""):
     except:
         return False
     return True
+def isStringInt(string_ = ""):
+    try:
+        int_ = int(string_)
+    except:
+        return False
+    return True
+# port entry validation
+def numValidation(inputString, actionType):
+    if actionType == '1':
+        if not inputString.isdigit() or len(portVar.get()) >= 5:
+            return False
+    return True
+
 # cooldown changed
 def cooldownChangeHandler(event=None):
     global cooldown
@@ -417,7 +443,8 @@ themeTxtVar = tkinter.StringVar(root, appcfg["general"]["app_theme"])
 connStatusBool = False
 connStatusTxt = tkinter.StringVar(root, "Not connected")
 ipVar = tkinter.StringVar(root, appcfg["general"]["ip_address"])
-portVar = tkinter.StringVar(root, appcfg["general"]["port"])
+portVar = tkinter.StringVar(root, appcfg["general"]["port"][:5])
+if not isStringInt(portVar.get()): portVar.set("4455")
 passVar = tkinter.StringVar(root, appcfg["general"]["password"])
 connBtnTxtVar = tkinter.StringVar(root, "Connect")
 currSongTxtVar_CH = tkinter.StringVar(root, appcfg["clonehero"]["currentsong_path"])
@@ -429,6 +456,7 @@ gameSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["game_scene"])
 menuSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["menu_scene"])
 gameSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["game_scene"])
 menuSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["menu_scene"])
+afkSceneTxtVar_global = tkinter.StringVar(root, appcfg["general"]["afk_scene"])
 updateBtnTxtVar = tkinter.StringVar(root, "Check for update")
 exiting = False
 autoCheckUpdateVar = tkinter.BooleanVar(root, appcfg["general"]["auto_check_update"] == "true")
@@ -443,56 +471,64 @@ whichTabMode = "Clone Hero"
 
 ## Layout stuff
 # Scene Switcher settings
-nb = ttk.Notebook(root, padding=0, height=140)
+nb = ttk.Notebook(root, padding=0, height=170)
 # Clone Hero
 nbFrameCH = ttk.Frame(nb, padding=10)
 currSongBrowseCH = ttk.Button(nbFrameCH, text="Browse currentsong.txt", command=browseForTxt_CH, width=20)
 currSongBrowseCH.grid(row=0,column=0,pady=2)
 currSongEntryCH = ttk.Entry(nbFrameCH, textvariable=currSongTxtVar_CH,width=35)
 currSongEntryCH.grid(row=0,column=1,pady=2)
-ttk.Label(nbFrameCH, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
+ttk.Label(nbFrameCH, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameCH, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameCH, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
 gameSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=gameSceneTxtVar_CH, width=35)
 gameSceneEntryCH.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-ttk.Label(nbFrameCH, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
 menuSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=menuSceneTxtVar_CH, width=35)
 menuSceneEntryCH.grid(row=2,column=1,padx=10,pady=2,sticky=E)
+afkSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryCH.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 # YARG stable
 nbFrameYARG = ttk.Frame(nb, padding=10)
 currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG, width=20)
 currSongBrowseYARG.grid(row=0,column=0,pady=2)
 currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=35).grid(row=0,column=1,pady=2)
-lblGameSceneYARG = ttk.Label(nbFrameYARG, text="Gameplay Scene: ").grid(row=1,column=0,padx=10,pady=2,sticky=W)
+ttk.Label(nbFrameYARG, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameYARG, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameYARG, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
 gameSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=gameSceneTxtVar_YARG, width=35)
 gameSceneEntryYARG.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-lblMenuSceneYARG = ttk.Label(nbFrameYARG, text="Menu Scene: ").grid(row=2,column=0,padx=10,pady=2,sticky=W)
 menuSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=menuSceneTxtVar_YARG, width=35)
 menuSceneEntryYARG.grid(row=2,column=1,padx=10,pady=2,sticky=E)
+afkSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryYARG.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 # YARG nightly
 nbFrameYARGnightly = ttk.Frame(nb, padding=10)
 currSongBrowseYARGnightly = ttk.Button(nbFrameYARGnightly, text="Browse currentSong.txt", command=browseForTxt_YARGnightly, width=20)
 currSongBrowseYARGnightly.grid(row=0,column=0,pady=2)
 currSongEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=currSongTxtVar_YARGnightly,width=35)
 currSongEntryYARGnightly.grid(row=0,column=1,pady=2)
-lblGameSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Gameplay Scene: ")
-lblGameSceneYARGnightly.grid(row=1,column=0,padx=10,pady=2,sticky=W)
+ttk.Label(nbFrameYARGnightly, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameYARGnightly, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameYARGnightly, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
 gameSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=gameSceneTxtVar_YARGnightly, width=35)
 gameSceneEntryYARGnightly.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-lblMenuSceneYARGnightly = ttk.Label(nbFrameYARGnightly, text="Menu Scene: ")
-lblMenuSceneYARGnightly.grid(row=2,column=0,padx=10,pady=2,sticky=W)
 menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuSceneTxtVar_YARGnightly, width=35)
 menuSceneEntryYARGnightly.grid(row=2,column=1,padx=10,pady=2,sticky=E)
+afkSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryYARGnightly.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 nb.add(nbFrameCH, text="Clone Hero")
 nb.add(nbFrameYARG, text="YARG stable")
 nb.add(nbFrameYARGnightly, text="YARG nightly")
 
-nb.grid(row=0,column=0,rowspan=2, padx=10, pady=10, sticky=NW)
+nb.grid(row=0,column=0,rowspan=3, padx=10, pady=10, sticky=NW)
 
 # Websocket Settings frame
 wsFrame = ttk.Labelframe(root, text="Websocket Connection", width=370, height=180, padding=10)
 ipLabel = ttk.Label(wsFrame, text=" IP Address:")
 ipEntry = ttk.Entry(wsFrame, textvariable=ipVar, width=16)
 portLabel = ttk.Label(wsFrame, text="  Port:")
-portEntry = ttk.Entry(wsFrame, textvariable=portVar, width=6)
+portEntry = ttk.Entry(wsFrame, textvariable=portVar, width=6, validate="key")
+portEntry["validatecommand"] = (portEntry.register(numValidation), "%P", "%d")  # limits input to digits
 passLabel = ttk.Label(wsFrame, text="Password:")
 passEntry = ttk.Entry(wsFrame, textvariable=passVar, show="•", width=34)
 ipLabel.grid(row=0, column=0, padx=10, pady=2, sticky=E)
@@ -502,10 +538,6 @@ portEntry.grid(row=0, column=3, padx=10, pady=2, sticky=E)
 passLabel.grid(row=1, column=0, padx=10, pady=2, sticky=E)
 passEntry.grid(row=1, column=1, columnspan=3, padx=10, pady=2, sticky=W)
 wsFrame.grid(row=0, column=1, padx=10, pady=10, sticky=NE)
-
-# Case-sensitivity notice for scene names
-caseSensitiveInfoLbl = tb.Label(root, text="Note: OBS scene names are case-sensitive!")
-caseSensitiveInfoLbl.grid(row=2, column=0)
 
 # Theme select and other settings
 genSettingsFrame = tkinter.Frame(root, padx=10, pady=10)
@@ -521,20 +553,49 @@ cooldownSpin.grid(row=0,column=4,sticky=W)
 updateBtn = tb.Button(genSettingsFrame, textvariable=updateBtnTxtVar, command=checkGithubForUpdate, width=29)
 updateBtn.grid(row=1,column=0,columnspan=3,sticky=SW)
 autoUpdateToggle = tb.Checkbutton(genSettingsFrame, variable=autoCheckUpdateVar, text="Auto-check: ", bootstyle="round-toggle")
-autoUpdateToggle.grid(row=1,column=3,padx=5)
+autoUpdateToggle.grid(row=1,column=3,padx=10)
 updChanOption = tb.OptionMenu(genSettingsFrame, updateChannel, "","Stable","PreRelease", command=changeUpdateChannel)
 updChanOption.grid(row=1,column=4)
 genSettingsFrame.grid(row=3, column=0, rowspan=2, sticky=SW)
 
 # Save config button
 saveBtn = ttk.Button(root, text="Save configuration", width=50, command=saveBtnClick)
-saveBtn.grid(row=1, column=1, ipady=5, pady=10)
+saveBtn.grid(row=1, column=1, ipady=5, pady=10, sticky=N)
 # Connection status indicator
 connStatusLbl = tb.Label(root, textvariable=connStatusTxt, bootstyle="danger")
 connStatusLbl.grid(row=3, column=1, sticky=S)
 # Connect button
 connectBtn = tb.Button(root, textvariable=connBtnTxtVar, width=50, command=connectBtnClick, bootstyle="info")
 connectBtn.grid(row=4, column=1, ipady=18, pady=10)
+
+# Tooltips (for helpful information)
+tips = {
+    saveBtn: "Saves the current configuration.\nNote: This happens automatically on closing.",
+    connectBtn: "Connects the scene switcher to OBS Studio's websocket server.",
+    autoUpdateToggle: "Toggles whether to automatically check for updates at launch.",
+    cooldownSpin: "Controls how many seconds the scene switcher waits after switching scenes before the next scene switch can occur.\n\nRange: 0.0 to 30.0",
+    ipEntry: "The local IP address of the OBS websocket server.\n\nIf unsure, leave it as localhost",
+    portEntry: "The port of the OBS websocket server.\n\nDefault: 4455",
+    themeOption: "Controls the application theme (dark, black, or light mode)",
+    updChanOption: "Controls whether to check for pre-release builds, or just stable ones.\n\nIf unsure, set it to Stable"
+}
+importantTips = {
+    passEntry: "It is strongly recommended to generate a password in the OBS websocket server settings and paste it here (Ctrl+V).",
+    gameSceneEntryCH:           "Scene to switch to when playing a song.\nCASE-SENSITIVE!",
+    menuSceneEntryCH:           "Scene to switch to when in menus.\nCASE-SENSITIVE!",
+    gameSceneEntryYARG:         "Scene to switch to when playing a song.\nCASE-SENSITIVE!",
+    menuSceneEntryYARG:         "Scene to switch to when in menus.\nCASE-SENSITIVE!",
+    gameSceneEntryYARGnightly:  "Scene to switch to when playing a song.\nCASE-SENSITIVE!",
+    menuSceneEntryYARGnightly:  "Scene to switch to when in menus.\nCASE-SENSITIVE!",
+    afkSceneEntryCH:            "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!",
+    afkSceneEntryYARG:          "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!",
+    afkSceneEntryYARGnightly:   "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!"
+}
+updateToolTip = ToolTip(updateBtn, text="Checks for a new version of PyCHOSS on GitHub.", padding=3, delay=500)
+for widg, tip in tips.items():
+    ToolTip(widg, tip, 3, delay=500)
+for widg_, tip_ in importantTips.items():
+    ToolTip(widg_, tip_, 3, delay=0)
 
 # set things up
 root.geometry()
