@@ -18,7 +18,7 @@ from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.2.0"
+appVersion = "v1.2.1-pre1"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -234,6 +234,9 @@ def onDisconnect(sock):
 def wsConnectionWorker():
     global client
     global whichTabMode
+    global csPath
+    global gameScene
+    global menuScene
     global connStatusBool
     global cooldown
     ip = ipVar.get()
@@ -242,8 +245,6 @@ def wsConnectionWorker():
     if isStringInt(portStr): port = int(portStr)
     pw = passVar.get()
     csPath = ""
-    gameScene = ""
-    menuScene = ""
     whichTabMode = nb.tab(nb.select(), "text")
     if whichTabMode == "Clone Hero":
         csPath = currSongTxtVar_CH.get()
@@ -434,6 +435,32 @@ def fixCooldownTxt(a=None,b=None,c=None):
         cooldownStr = f"{cooldown:0.1f}"
         cooldownTxtVar.set(cooldownStr)
 
+# tab switch handler
+def changedTabHandler(event=None):
+    global whichTabMode
+    global csPath
+    global gameScene
+    global menuScene
+    whichTabMode = nb.tab(nb.select(), "text")
+    if connStatusBool == True:
+        newCsPath = ""
+        if whichTabMode == "Clone Hero":
+            newCsPath = currSongTxtVar_CH.get()
+            gameScene = gameSceneTxtVar_CH.get()
+            menuScene = menuSceneTxtVar_CH.get()
+        elif whichTabMode == "YARG stable":
+            newCsPath = currSongTxtVar_YARG.get()
+            gameScene = gameSceneTxtVar_YARG.get()
+            menuScene = menuSceneTxtVar_YARG.get()
+        elif whichTabMode == "YARG nightly":
+            newCsPath = currSongTxtVar_YARGnightly.get()
+            gameScene = gameSceneTxtVar_YARGnightly.get()
+            menuScene = menuSceneTxtVar_YARGnightly.get()
+        if os.path.isfile(newCsPath):
+            csPath = newCsPath
+            connStatusTxt.set("Connected (%s)" % whichTabMode)
+    print("Switched tabs to " + whichTabMode)
+
 ## initialize main window and stuff
 root = tb.Window(title="PyCHOSS " + appVersion, themename="darkly")
 root.protocol("WM_DELETE_WINDOW", onCloseWindow)
@@ -467,7 +494,10 @@ if isStringFloat(cooldownTxtVar.get()):
     cooldown = float(cooldownTxtVar.get())
 fixCooldownTxt()
 
+csPath = ""
 whichTabMode = "Clone Hero"
+gameScene = ""
+menuScene = ""
 
 ## Layout stuff
 # Scene Switcher settings
@@ -519,6 +549,7 @@ afkSceneEntryYARGnightly.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 nb.add(nbFrameCH, text="Clone Hero")
 nb.add(nbFrameYARG, text="YARG stable")
 nb.add(nbFrameYARGnightly, text="YARG nightly")
+nb.bind("<<NotebookTabChanged>>", changedTabHandler)
 
 nb.grid(row=0,column=0,rowspan=3, padx=10, pady=10, sticky=NW)
 
