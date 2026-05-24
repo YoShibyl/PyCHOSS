@@ -18,7 +18,7 @@ from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.2.1-pre1"
+appVersion = "v1.2.1"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -459,7 +459,6 @@ def changedTabHandler(event=None):
         if os.path.isfile(newCsPath):
             csPath = newCsPath
             connStatusTxt.set("Connected (%s)" % whichTabMode)
-    print("Switched tabs to " + whichTabMode)
 
 ## initialize main window and stuff
 root = tb.Window(title="PyCHOSS " + appVersion, themename="darkly")
