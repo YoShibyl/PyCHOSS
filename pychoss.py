@@ -18,7 +18,7 @@ from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.2.1"
+appVersion = "v1.3.0-pre1"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -143,6 +143,11 @@ defaultYargNightly = {
     "game_scene":"YARG Gameplay",
     "menu_scene":"YARG Menu"
 }
+defaultRb3dx = {
+    "currentsong_path": "",
+    "game_scene":"RB3 Gameplay",
+    "menu_scene":"RB3 Menu"
+}
 if sys.platform == "win32":
     defaultCloneHero["currentsong_path"] = os.path.expanduser("~\\OneDrive\\Documents\\Clone Hero\\currentsong.txt")
     defaultYarg["currentsong_path"] = os.path.expanduser("~\\AppData\\LocalLow\\YARC\\YARG\\release\\currentSong.txt")
@@ -154,6 +159,7 @@ def update_config(reload=False):
         appcfg["clonehero"] = defaultCloneHero
         appcfg["yarg"] = defaultYarg
         appcfg["yarg_nightly"] = defaultYargNightly
+        appcfg["rb3dx"] = defaultRb3dx
     if reload:
         appcfg.read("config.ini")
         # General
@@ -175,6 +181,11 @@ def update_config(reload=False):
             appcfg["yarg_nightly"] = defaultYargNightly
         for k in defaultYargNightly.keys():
             if k not in appcfg["yarg_nightly"].keys(): appcfg["yarg_nightly"][k] = defaultYargNightly[k]
+        # Rock Band 3 Deluxe
+        if "rb3dx" not in appcfg.sections():
+            appcfg["rb3dx"] = defaultRb3dx
+        for k in defaultRb3dx.keys():
+            if k not in appcfg["rb3dx"].keys(): appcfg["rb3dx"][k] = defaultRb3dx[k]
     with open("config.ini", "w") as cfgfile:
         appcfg.write(cfgfile)
         cfgfile.close()
@@ -197,6 +208,8 @@ def connectBtnClick(event=None):
             child.config(state="disabled")
         for child in nbFrameYARGnightly.winfo_children():
             child.config(state="disabled")
+        for child in nbFrameRB3DX.winfo_children():
+            child.config(state="disabled")
         wsThread = threading.Thread(target=wsConnectionWorker)
         wsThread.start()
     else:
@@ -208,6 +221,10 @@ def connectBtnClick(event=None):
         for child in nbFrameCH.winfo_children():
             child.config(state="enabled")
         for child in nbFrameYARG.winfo_children():
+            child.config(state="enabled")
+        for child in nbFrameYARGnightly.winfo_children():
+            child.config(state="enabled")
+        for child in nbFrameRB3DX.winfo_children():
             child.config(state="enabled")
 def onConnect(sock):
     global connStatusBool
@@ -258,6 +275,10 @@ def wsConnectionWorker():
         csPath = currSongTxtVar_YARGnightly.get()
         gameScene = gameSceneTxtVar_YARGnightly.get()
         menuScene = menuSceneTxtVar_YARGnightly.get()
+    elif whichTabMode == "RB3DX":
+        csPath = currSongTxtVar_RB3DX.get()
+        gameScene = gameSceneTxtVar_RB3DX.get()
+        menuScene = menuSceneTxtVar_RB3DX.get()
     if os.path.isfile(csPath):
         client = obsws(ip, port, pw, on_connect=onConnect, on_disconnect=onDisconnect, timeout=5)
         try:
@@ -276,6 +297,8 @@ def wsConnectionWorker():
                 child.config(state="enabled")
             for child in nbFrameYARGnightly.winfo_children():
                 child.config(state="enabled")
+            for child in nbFrameRB3DX.winfo_children():
+                child.config(state="enabled")
         if connStatusBool == True:
             old_size = os.path.getsize(csPath)
             while connStatusBool == True:
@@ -289,11 +312,17 @@ def wsConnectionWorker():
                     except: pass
                     afkScene = afkSceneTxtVar_global.get().strip()
                     if (currentScene != afkScene and afkScene != "") or afkScene == "":
-                        if new_size == 0:  # menu scene
-                            client.call(requests.SetCurrentProgramScene(sceneName=menuScene))
+                        if new_size == 0:
+                            client.call(requests.SetCurrentProgramScene(sceneName=menuScene))  # menu scene
                             if cooldown > 0: time.sleep(cooldown)
-                        else:  # gameplay scene
-                            client.call(requests.SetCurrentProgramScene(sceneName=gameScene))
+                        else:
+                            csContents = ""
+                            with open(os.path.abspath(csPath)) as csTxtF:
+                                csContents = csTxtF.read()
+                            if '"No Song Loaded"' in csContents or '"{\\qPlaylist\\q:"' in csContents:
+                                client.call(requests.SetCurrentProgramScene(sceneName=menuScene))  # menu scene (special case for RB3DX)
+                            else:
+                                client.call(requests.SetCurrentProgramScene(sceneName=gameScene))  # gameplay scene
                             if cooldown > 0: time.sleep(cooldown)
                     old_size = new_size
                 time.sleep(0.1)
@@ -307,6 +336,8 @@ def wsConnectionWorker():
         for child in nbFrameYARG.winfo_children():
             child.config(state="enabled")
         for child in nbFrameYARGnightly.winfo_children():
+            child.config(state="enabled")
+        for child in nbFrameRB3DX.winfo_children():
             child.config(state="enabled")
 # application close handler
 def onCloseWindow(event=None):
@@ -349,12 +380,15 @@ def saveBtnClick(event=None):
     appcfg["clonehero"]["currentsong_path"] = currSongTxtVar_CH.get()
     appcfg["yarg"]["currentsong_path"] = currSongTxtVar_YARG.get()
     appcfg["yarg_nightly"]["currentsong_path"] = currSongTxtVar_YARGnightly.get()
+    appcfg["rb3dx"]["currentsong_path"] = currSongTxtVar_RB3DX.get()
     appcfg["clonehero"]["game_scene"] = gameSceneTxtVar_CH.get()
     appcfg["clonehero"]["menu_scene"] = menuSceneTxtVar_CH.get()
     appcfg["yarg"]["game_scene"] = gameSceneTxtVar_YARG.get()
     appcfg["yarg"]["menu_scene"] = menuSceneTxtVar_YARG.get()
     appcfg["yarg_nightly"]["game_scene"] = gameSceneTxtVar_YARGnightly.get()
     appcfg["yarg_nightly"]["menu_scene"] = menuSceneTxtVar_YARGnightly.get()
+    appcfg["rb3dx"]["game_scene"] = gameSceneTxtVar_RB3DX.get()
+    appcfg["rb3dx"]["menu_scene"] = menuSceneTxtVar_RB3DX.get()
     update_config()
 # theme select handler
 def updateTheme(event=None):
@@ -389,6 +423,12 @@ def browseForTxt_YARGnightly(event=None):
     filepath = filedialog.askopenfilename(filetypes=[("Text file","*.txt")], initialdir=startDir)
     if len(filepath) > 0:
         currSongTxtVar_YARGnightly.set(filepath)
+def browseForTxt_RB3DX(event=None):
+    global appcfg
+    startDir = appcfg["rb3dx"]["currentsong_path"].replace("currentsong.txt", "")
+    filepath = filedialog.askopenfilename(filetypes=[("Text file","*.txt")], initialdir=startDir)
+    if len(filepath) > 0:
+        currSongTxtVar_RB3DX.set(filepath)
 # cooldown spinbox validation
 def isStringFloat(string_ = ""):
     try:
@@ -456,6 +496,10 @@ def changedTabHandler(event=None):
             newCsPath = currSongTxtVar_YARGnightly.get()
             gameScene = gameSceneTxtVar_YARGnightly.get()
             menuScene = menuSceneTxtVar_YARGnightly.get()
+        elif whichTabMode == "RB3DX":
+            newCsPath = currSongTxtVar_RB3DX.get()
+            gameScene = gameSceneTxtVar_RB3DX.get()
+            menuScene = menuSceneTxtVar_RB3DX.get()
         if os.path.isfile(newCsPath):
             csPath = newCsPath
             connStatusTxt.set("Connected (%s)" % whichTabMode)
@@ -476,12 +520,15 @@ connBtnTxtVar = tkinter.StringVar(root, "Connect")
 currSongTxtVar_CH = tkinter.StringVar(root, appcfg["clonehero"]["currentsong_path"])
 currSongTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["currentsong_path"])
 currSongTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["currentsong_path"])
+currSongTxtVar_RB3DX = tkinter.StringVar(root, appcfg["rb3dx"]["currentsong_path"])
 gameSceneTxtVar_CH = tkinter.StringVar(root, appcfg["clonehero"]["game_scene"])
 menuSceneTxtVar_CH = tkinter.StringVar(root, appcfg["clonehero"]["menu_scene"])
 gameSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["game_scene"])
 menuSceneTxtVar_YARG = tkinter.StringVar(root, appcfg["yarg"]["menu_scene"])
 gameSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["game_scene"])
 menuSceneTxtVar_YARGnightly = tkinter.StringVar(root, appcfg["yarg_nightly"]["menu_scene"])
+gameSceneTxtVar_RB3DX = tkinter.StringVar(root, appcfg["rb3dx"]["game_scene"])
+menuSceneTxtVar_RB3DX = tkinter.StringVar(root, appcfg["rb3dx"]["menu_scene"])
 afkSceneTxtVar_global = tkinter.StringVar(root, appcfg["general"]["afk_scene"])
 updateBtnTxtVar = tkinter.StringVar(root, "Check for update")
 exiting = False
@@ -520,7 +567,8 @@ afkSceneEntryCH.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 nbFrameYARG = ttk.Frame(nb, padding=10)
 currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG, width=20)
 currSongBrowseYARG.grid(row=0,column=0,pady=2)
-currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=35).grid(row=0,column=1,pady=2)
+currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=35)
+currSongEntryYARG.grid(row=0,column=1,pady=2)
 ttk.Label(nbFrameYARG, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARG, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARG, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
@@ -545,9 +593,25 @@ menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuScene
 menuSceneEntryYARGnightly.grid(row=2,column=1,padx=10,pady=2,sticky=E)
 afkSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=afkSceneTxtVar_global, width=35)
 afkSceneEntryYARGnightly.grid(row=3,column=1,padx=10,pady=2,sticky=E)
+# Rock Band 3 Deluxe
+nbFrameRB3DX = ttk.Frame(nb, padding=10)
+currSongBrowseRB3DX = ttk.Button(nbFrameRB3DX, text="Browse currentsong.txt", command=browseForTxt_RB3DX, width=20)
+currSongBrowseRB3DX.grid(row=0,column=0,pady=2)
+currSongEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=currSongTxtVar_RB3DX,width=35)
+currSongEntryRB3DX.grid(row=0,column=1,pady=2)
+ttk.Label(nbFrameRB3DX, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameRB3DX, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
+ttk.Label(nbFrameRB3DX, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
+gameSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=gameSceneTxtVar_RB3DX, width=35)
+gameSceneEntryRB3DX.grid(row=1,column=1,padx=10,pady=2,sticky=E)
+menuSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=menuSceneTxtVar_RB3DX, width=35)
+menuSceneEntryRB3DX.grid(row=2,column=1,padx=10,pady=2,sticky=E)
+afkSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryRB3DX.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 nb.add(nbFrameCH, text="Clone Hero")
 nb.add(nbFrameYARG, text="YARG stable")
 nb.add(nbFrameYARGnightly, text="YARG nightly")
+nb.add(nbFrameRB3DX, text="RB3DX")
 nb.bind("<<NotebookTabChanged>>", changedTabHandler)
 
 nb.grid(row=0,column=0,rowspan=3, padx=10, pady=10, sticky=NW)
@@ -607,7 +671,9 @@ tips = {
     ipEntry: "The local IP address of the OBS websocket server.\n\nIf unsure, leave it as localhost",
     portEntry: "The port of the OBS websocket server.\n\nDefault: 4455",
     themeOption: "Controls the application theme (dark, black, or light mode)",
-    updChanOption: "Controls whether to check for pre-release builds, or just stable ones.\n\nIf unsure, set it to Stable"
+    updChanOption: "Controls whether to check for pre-release builds, or just stable ones.\n\nIf unsure, set it to Stable",
+    currSongBrowseRB3DX: "The currentsong.txt for Rock Band 3 Deluxe on RPCS3 should be located in the following path within RPCS3:\n./dev_hdd0/game/BLUS30463/USRDIR/currentsong.txt",
+    currSongEntryRB3DX: "The currentsong.txt for Rock Band 3 Deluxe on RPCS3 should be located in the following path within RPCS3:\n./dev_hdd0/game/BLUS30463/USRDIR/currentsong.txt"
 }
 importantTips = {
     passEntry: "It is strongly recommended to generate a password in the OBS websocket server settings and paste it here (Ctrl+V).",
@@ -617,9 +683,12 @@ importantTips = {
     menuSceneEntryYARG:         "Scene to switch to when in menus.\nCASE-SENSITIVE!",
     gameSceneEntryYARGnightly:  "Scene to switch to when playing a song.\nCASE-SENSITIVE!",
     menuSceneEntryYARGnightly:  "Scene to switch to when in menus.\nCASE-SENSITIVE!",
+    gameSceneEntryRB3DX:         "Scene to switch to when playing a song.\nCASE-SENSITIVE!",
+    menuSceneEntryRB3DX:         "Scene to switch to when in menus.\nCASE-SENSITIVE!",
     afkSceneEntryCH:            "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!",
     afkSceneEntryYARG:          "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!",
-    afkSceneEntryYARGnightly:   "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!"
+    afkSceneEntryYARGnightly:   "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!",
+    afkSceneEntryRB3DX:          "Scene that will prevent switching while active.  This is for privacy purposes (for example, when you're away from your stream).\nLeave blank to disable.\n\nThis setting is the same regardless of the game, and it's CASE-SENSITIVE!"
 }
 updateToolTip = ToolTip(updateBtn, text="Checks for a new version of PyCHOSS on GitHub.", padding=3, delay=500)
 for widg, tip in tips.items():
