@@ -18,7 +18,7 @@ from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.3.0-pre1"
+appVersion = "v1.3.0-pre2"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -125,6 +125,7 @@ defaultGeneral = {
     "password": "",
     "auto_check_update": "true",
     "update_channel": defaultChannel,  # Changes to "Stable" on release, or "PreRelease" in pre-release builds
+    "delay_seconds": "0.0",
     "cooldown_seconds": "1.0",
     "afk_scene": "AFK"
 }
@@ -255,6 +256,7 @@ def wsConnectionWorker():
     global gameScene
     global menuScene
     global connStatusBool
+    global preDelay
     global cooldown
     ip = ipVar.get()
     portStr = portVar.get()
@@ -304,6 +306,8 @@ def wsConnectionWorker():
             while connStatusBool == True:
                 new_size = os.path.getsize(csPath)
                 if old_size != new_size:
+                    preDelay = preDelayChangeHandler()
+                    if preDelay > 0: time.sleep(preDelay)
                     cooldown = cooldownChangeHandler()
                     currentScene = " "
                     try:
@@ -323,9 +327,9 @@ def wsConnectionWorker():
                                 client.call(requests.SetCurrentProgramScene(sceneName=menuScene))  # menu scene (special case for RB3DX)
                             else:
                                 client.call(requests.SetCurrentProgramScene(sceneName=gameScene))  # gameplay scene
-                            if cooldown > 0: time.sleep(cooldown)
+                            if cooldown > 0.05: time.sleep(cooldown - 0.05)
                     old_size = new_size
-                time.sleep(0.1)
+                time.sleep(0.05)
     else:
         connStatusLbl.config(bootstyle="warning")
         connStatusTxt.set("currentsong.txt not found! (%s)" % whichTabMode)
@@ -375,6 +379,7 @@ def saveBtnClick(event=None):
     appcfg["general"]["password"] = passVar.get()
     appcfg["general"]["auto_check_update"] = "true" if autoCheckUpdateVar.get() == True else "false"
     appcfg["general"]["update_channel"] = updateChannel.get()
+    appcfg["general"]["delay_seconds"] = preDelayTxtVar.get()
     appcfg["general"]["cooldown_seconds"] = cooldownTxtVar.get()
     appcfg["general"]["afk_scene"] = afkSceneTxtVar_global.get()
     appcfg["clonehero"]["currentsong_path"] = currSongTxtVar_CH.get()
@@ -474,6 +479,31 @@ def fixCooldownTxt(a=None,b=None,c=None):
         elif cooldown < 0.0: cooldown = 0.0
         cooldownStr = f"{cooldown:0.1f}"
         cooldownTxtVar.set(cooldownStr)
+# pre delay changed
+def preDelayChangeHandler(event=None):
+    global preDelay
+    global preDelayTxtVar
+    fixCooldownTxt()
+    if isStringFloat(preDelayTxtVar.get()):
+        preDelay = float(preDelayTxtVar.get())
+        if preDelay > 10.0: preDelay = 10.0
+        elif preDelay < 0.0: preDelay = 0.0
+        return preDelay
+# pre delay validation
+def fixPreDelayTxt(a=None,b=None,c=None):
+    global preDelayTxtVar
+    global preDelay
+    preDelayStr = preDelayTxtVar.get().replace("-","")
+    if isStringFloat(preDelayStr) == False:
+        preDelayStr = "0.0"
+        preDelay = 1.0
+        preDelayTxtVar.set(preDelayStr)
+    else:
+        preDelay = float(preDelayStr)
+        if preDelay > 10.0: preDelay = 10.0
+        elif preDelay < 0.0: preDelay = 0.0
+        preDelayStr = f"{preDelay:0.1f}"
+        preDelayTxtVar.set(preDelayStr)
 
 # tab switch handler
 def changedTabHandler(event=None):
@@ -534,10 +564,15 @@ updateBtnTxtVar = tkinter.StringVar(root, "Check for update")
 exiting = False
 autoCheckUpdateVar = tkinter.BooleanVar(root, appcfg["general"]["auto_check_update"] == "true")
 updateChannel = tkinter.StringVar(root, appcfg["general"]["update_channel"])
+preDelayTxtVar = tkinter.StringVar(root, appcfg["general"]["delay_seconds"])
 cooldownTxtVar = tkinter.StringVar(root, appcfg["general"]["cooldown_seconds"])
+preDelay = 0.0
 cooldown = 0.0
 if isStringFloat(cooldownTxtVar.get()):
     cooldown = float(cooldownTxtVar.get())
+fixCooldownTxt()
+if isStringFloat(preDelayTxtVar.get()):
+    preDelay = float(preDelayTxtVar.get())
 fixCooldownTxt()
 
 csPath = ""
@@ -638,18 +673,21 @@ genSettingsFrame = tkinter.Frame(root, padx=10, pady=10)
 themeLbl = tb.Label(genSettingsFrame, text=" App theme: ")
 themeOption = tb.OptionMenu(genSettingsFrame, themeTxtVar, "","Dark","Black","Light", command=updateTheme)
 updateTheme()
-themeLbl.grid(row=0,column=0,sticky=W)
-themeOption.grid(row=0,column=1,sticky=W, padx=10,pady=10)
-cooldownLbl = tb.Label(genSettingsFrame, text="  Scene cooldown (sec): ").grid(row=0,column=2,columnspan=2,sticky=W)
+themeLbl.grid(row=1,column=0,sticky=W)
+themeOption.grid(row=1,column=1,sticky=W, padx=10,pady=10)
+preDelayLbl = tb.Label(genSettingsFrame, text="Scene delay (sec): ").grid(row=0,column=3,columnspan=1,sticky=W)
+cooldownLbl = tb.Label(genSettingsFrame, text="Cooldown (sec): ").grid(row=0,column=4,columnspan=2,sticky=W)
+preDelaySpin = ttk.Spinbox(genSettingsFrame, increment=0.1, from_=0, to=10, command=preDelayChangeHandler, validatecommand=isStringFloat, textvariable=preDelayTxtVar, width=4)
+preDelaySpin.grid(row=1,column=3,sticky=W)
 cooldownSpin = ttk.Spinbox(genSettingsFrame, increment=0.1, from_=0, to=30, command=cooldownChangeHandler, validatecommand=isStringFloat, textvariable=cooldownTxtVar, width=4)
 # cooldownTxtVar.trace("w", fixCooldownTxt)
-cooldownSpin.grid(row=0,column=4,sticky=W)
+cooldownSpin.grid(row=1,column=4,sticky=W)
 updateBtn = tb.Button(genSettingsFrame, textvariable=updateBtnTxtVar, command=checkGithubForUpdate, width=29)
-updateBtn.grid(row=1,column=0,columnspan=3,sticky=SW)
+updateBtn.grid(row=2,column=0,columnspan=3,sticky=SW)
 autoUpdateToggle = tb.Checkbutton(genSettingsFrame, variable=autoCheckUpdateVar, text="Auto-check: ", bootstyle="round-toggle")
-autoUpdateToggle.grid(row=1,column=3,padx=10)
+autoUpdateToggle.grid(row=2,column=3,padx=10)
 updChanOption = tb.OptionMenu(genSettingsFrame, updateChannel, "","Stable","PreRelease", command=changeUpdateChannel)
-updChanOption.grid(row=1,column=4)
+updChanOption.grid(row=2,column=4)
 genSettingsFrame.grid(row=3, column=0, rowspan=2, sticky=SW)
 
 # Save config button
@@ -667,6 +705,7 @@ tips = {
     saveBtn: "Saves the current configuration.\nNote: This happens automatically on closing.",
     connectBtn: "Connects the scene switcher to OBS Studio's websocket server.",
     autoUpdateToggle: "Toggles whether to automatically check for updates at launch.",
+    preDelaySpin: "Controls how many seconds to wait before initiating a scene switch.  If a cooldown is active, then this delay will start after the cooldown.\n\nRange: 0.0 to 10.0",
     cooldownSpin: "Controls how many seconds the scene switcher waits after switching scenes before the next scene switch can occur.\n\nRange: 0.0 to 30.0",
     ipEntry: "The local IP address of the OBS websocket server.\n\nIf unsure, leave it as localhost",
     portEntry: "The port of the OBS websocket server.\n\nDefault: 4455",
