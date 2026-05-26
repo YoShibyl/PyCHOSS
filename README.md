@@ -1,25 +1,25 @@
 # Python Clone Hero OBS Scene Switcher (PyCHOSS)
-This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automatic OBS scene switching tool for [Clone Hero](https://clonehero.net/) / [YARG](https://yarg.in/) players.  It works by detecting changes in the `currentsong.txt` file of the game, which lets the program determine when to switch to/from the specified scenes via [OBS websockets](https://github.com/Elektordi/obs-websocket-py).
+This is a rewrite/port of [CHOSS](https://github.com/YoShibyl/CHOSS), an automatic OBS scene switching tool for [Clone Hero](https://clonehero.net/), [YARG](https://yarg.in/), and [Rock Band 3 Deluxe](https://rb3dx.milohax.org/) (emulated).  It works by detecting changes in the `currentsong.txt` file of the game, which lets the program determine when to switch to/from the specified scenes via [OBS websockets](https://github.com/Elektordi/obs-websocket-py).
 
-## Screenshots (v1.2.0)
-Taken on Arch Linux with KDE Plasma running on a Steam Deck
+## Screenshots (v1.3.0)
+Taken on Arch Linux with KDE Plasma (Breeze Dark theme) running on a Steam Deck
 <details open>
   <summary>Dark theme</summary>
-  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/2688872a-1ead-4068-aed7-7b7590936751" />
+  <img width="998" height="404" alt="image" src="https://github.com/user-attachments/assets/4947742b-9712-4bc7-9224-a1ec09632fbe" />
 </details>
 <details>
   <summary>Black theme</summary>
-  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/2cb01789-d12c-4f9d-ba3e-37e79f8c285a" />
+  <img width="998" height="404" alt="image" src="https://github.com/user-attachments/assets/8e51826d-1c12-44de-b264-4b9742358808" />
 </details>
 <details>
   <summary>Light theme</summary>
-  <img width="998" height="387" alt="image" src="https://github.com/user-attachments/assets/eb10de17-e320-44bd-b7f2-25430c3eda98" />
+  <img width="998" height="404" alt="image" src="https://github.com/user-attachments/assets/26286fb6-e968-4f1e-b761-7ea310401879" />
 </details>
 
 ## Requirements
-- Windows or Linux (tested on Arch Linux with KDE Plasma, as well as Windows 11)
-- [OBS Studio](https://obsproject.com) v28 or newer, with at least two scenes set up (one for gameplay, and one for menus)
-- [Clone Hero](https://clonehero.net) or [YARG](https://yarg.in)
+- Windows or Linux (tested on SteamOS/Arch Linux with KDE Plasma, as well as Windows 11)
+- [OBS Studio](https://obsproject.com/) v28 or newer, with at least two scenes set up (one for gameplay, and one for menus)
+- [Clone Hero](https://clonehero.net/), [YARG](https://yarg.in/), or [Rock Band 3 Deluxe](https://rb3dx.milohax.org/) (running on RPCS3)
 
 ## Setup
 Download your platform's build of PyCHOSS from [Releases](https://github.com/YoShibyl/PyCHOSS/releases) to its own folder.
@@ -30,7 +30,7 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 1) Click **Tools > WebSocket Server Settings**.  Make sure **Enable WebSocket Server** is checked.
 2) ***It is strongly recommended to use a password for authentication, preferably one that is generated.***  To do this, check the **Enable Authentication** box, click **Generate Password**, and then click **Apply**.  You only need to do this once.
 3) Click the **Show Connect Info** button, and copy the password that was generated.  You'll need this to connect PyCHOSS to the websocket server.
-4) *(optional)* If connecting to a WebSocket on a different PC running OBS, you'll need the local IP address of that PC.  Otherwise, leave the IP in PyCHOSS as `localhost`, `127.0.0.1`, or `0.0.0.0`
+4) *(optional)* If connecting to a WebSocket on a different PC running OBS, you'll need the local IP address of that PC.  Otherwise, leave the IP in PyCHOSS as either `localhost`, `127.0.0.1`, or `0.0.0.0`
 
 > [!IMPORTANT]
 > It really goes without saying, but do NOT give your PyCHOSS installation's `config.ini` to ANYONE!
@@ -43,6 +43,8 @@ In order to use PyCHOSS, you need to configure your OBS websocket server.
 3) Change the scene names according to the scene names you have in OBS.  **Note that the scene names are case-sensitive!**
 4) Click **Save configuration** to save your settings
 5) Click the **Connect** button, and you should be all set!
+
+If the scene switcher is switching too soon or too frequently for your liking, adjust the delay and/or cooldown settings.
 
 ### Clone Hero setup
 In order for PyCHOSS to switch scenes when playing Clone Hero, the Export Current Song setting must be enabled in settings.
@@ -117,6 +119,7 @@ Note: It is currently impossible to build a Linux binary from a Windows machine,
 - [PyInstaller](https://pyinstaller.org/en/stable/) : Used for compiling single-file binaries for release
 - [Clone Hero](https://clonehero.net/) : Clone of Guitar Hero games made in Unity Engine
 - [YARG](https://yarg.in/) : Clone of Rock Band games, also made in Unity Engine
+- [Rock Band 3 Deluxe](https://rb3dx.milohax.org/) : A mod for Rock Band 3, made by MiloHax
 - Countless Google searches leading me to various forums and blogs that helped me develop this script
   - including [this blog post](https://www.makeworld.space/2021/10/linux-wine-pyinstaller.html) which helped me build the Windows version without having to boot into Windows.
 
