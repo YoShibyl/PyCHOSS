@@ -18,7 +18,7 @@ from ttkbootstrap.widgets import *
 from obswebsocket import obsws, requests
 from github import Github
 
-appVersion = "v1.3.0-pre2"
+appVersion = "v1.3.0"
 latestRelease = appVersion
 repoURL = "https://github.com/Yoshibyl/PyCHOSS"
 
@@ -585,63 +585,63 @@ menuScene = ""
 nb = ttk.Notebook(root, padding=0, height=170)
 # Clone Hero
 nbFrameCH = ttk.Frame(nb, padding=10)
-currSongBrowseCH = ttk.Button(nbFrameCH, text="Browse currentsong.txt", command=browseForTxt_CH, width=20)
+currSongBrowseCH = ttk.Button(nbFrameCH, text="Browse currentsong.txt", command=browseForTxt_CH, width=21)
 currSongBrowseCH.grid(row=0,column=0,pady=2)
-currSongEntryCH = ttk.Entry(nbFrameCH, textvariable=currSongTxtVar_CH,width=35)
+currSongEntryCH = ttk.Entry(nbFrameCH, textvariable=currSongTxtVar_CH,width=34)
 currSongEntryCH.grid(row=0,column=1,pady=2)
 ttk.Label(nbFrameCH, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameCH, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameCH, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
-gameSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=gameSceneTxtVar_CH, width=35)
+gameSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=gameSceneTxtVar_CH, width=34)
 gameSceneEntryCH.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-menuSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=menuSceneTxtVar_CH, width=35)
+menuSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=menuSceneTxtVar_CH, width=34)
 menuSceneEntryCH.grid(row=2,column=1,padx=10,pady=2,sticky=E)
-afkSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryCH = ttk.Entry(nbFrameCH, textvariable=afkSceneTxtVar_global, width=34)
 afkSceneEntryCH.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 # YARG stable
 nbFrameYARG = ttk.Frame(nb, padding=10)
-currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG, width=20)
+currSongBrowseYARG = ttk.Button(nbFrameYARG, text="Browse currentSong.txt", command=browseForTxt_YARG, width=21)
 currSongBrowseYARG.grid(row=0,column=0,pady=2)
-currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=35)
+currSongEntryYARG = ttk.Entry(nbFrameYARG, textvariable=currSongTxtVar_YARG,width=34)
 currSongEntryYARG.grid(row=0,column=1,pady=2)
 ttk.Label(nbFrameYARG, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARG, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARG, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
-gameSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=gameSceneTxtVar_YARG, width=35)
+gameSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=gameSceneTxtVar_YARG, width=34)
 gameSceneEntryYARG.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-menuSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=menuSceneTxtVar_YARG, width=35)
+menuSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=menuSceneTxtVar_YARG, width=34)
 menuSceneEntryYARG.grid(row=2,column=1,padx=10,pady=2,sticky=E)
-afkSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryYARG = ttk.Entry(nbFrameYARG, textvariable=afkSceneTxtVar_global, width=34)
 afkSceneEntryYARG.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 # YARG nightly
 nbFrameYARGnightly = ttk.Frame(nb, padding=10)
-currSongBrowseYARGnightly = ttk.Button(nbFrameYARGnightly, text="Browse currentSong.txt", command=browseForTxt_YARGnightly, width=20)
+currSongBrowseYARGnightly = ttk.Button(nbFrameYARGnightly, text="Browse currentSong.txt", command=browseForTxt_YARGnightly, width=21)
 currSongBrowseYARGnightly.grid(row=0,column=0,pady=2)
-currSongEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=currSongTxtVar_YARGnightly,width=35)
+currSongEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=currSongTxtVar_YARGnightly,width=34)
 currSongEntryYARGnightly.grid(row=0,column=1,pady=2)
 ttk.Label(nbFrameYARGnightly, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARGnightly, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameYARGnightly, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
-gameSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=gameSceneTxtVar_YARGnightly, width=35)
+gameSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=gameSceneTxtVar_YARGnightly, width=34)
 gameSceneEntryYARGnightly.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuSceneTxtVar_YARGnightly, width=35)
+menuSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=menuSceneTxtVar_YARGnightly, width=34)
 menuSceneEntryYARGnightly.grid(row=2,column=1,padx=10,pady=2,sticky=E)
-afkSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryYARGnightly = ttk.Entry(nbFrameYARGnightly, textvariable=afkSceneTxtVar_global, width=34)
 afkSceneEntryYARGnightly.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 # Rock Band 3 Deluxe
 nbFrameRB3DX = ttk.Frame(nb, padding=10)
-currSongBrowseRB3DX = ttk.Button(nbFrameRB3DX, text="Browse currentsong.txt", command=browseForTxt_RB3DX, width=20)
+currSongBrowseRB3DX = ttk.Button(nbFrameRB3DX, text="Browse currentsong.txt", command=browseForTxt_RB3DX, width=21)
 currSongBrowseRB3DX.grid(row=0,column=0,pady=2)
-currSongEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=currSongTxtVar_RB3DX,width=35)
+currSongEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=currSongTxtVar_RB3DX,width=34)
 currSongEntryRB3DX.grid(row=0,column=1,pady=2)
 ttk.Label(nbFrameRB3DX, text="Gameplay Scene:").grid(row=1,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameRB3DX, text="Menu Scene:").grid(row=2,column=0,padx=5,pady=2,sticky=E)
 ttk.Label(nbFrameRB3DX, text="(Global) AFK Scene:").grid(row=3,column=0,padx=5,pady=2,sticky=E)
-gameSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=gameSceneTxtVar_RB3DX, width=35)
+gameSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=gameSceneTxtVar_RB3DX, width=34)
 gameSceneEntryRB3DX.grid(row=1,column=1,padx=10,pady=2,sticky=E)
-menuSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=menuSceneTxtVar_RB3DX, width=35)
+menuSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=menuSceneTxtVar_RB3DX, width=34)
 menuSceneEntryRB3DX.grid(row=2,column=1,padx=10,pady=2,sticky=E)
-afkSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=afkSceneTxtVar_global, width=35)
+afkSceneEntryRB3DX = ttk.Entry(nbFrameRB3DX, textvariable=afkSceneTxtVar_global, width=34)
 afkSceneEntryRB3DX.grid(row=3,column=1,padx=10,pady=2,sticky=E)
 nb.add(nbFrameCH, text="Clone Hero")
 nb.add(nbFrameYARG, text="YARG stable")
@@ -740,6 +740,17 @@ root.geometry()
 root.resizable(False,False)
 client = obsws()
 root.after(0, updateBtnTimerStart)
+
+# set window icon icon if possible
+pychossIconPath = ""
+try:
+    pychossIconPath = os.path.join(sys._MEIPASS, "icon.png")
+except:
+    pychossIconPath = os.path.join(os.path.abspath("."), "icon.png")
+try:
+    if pychossIconPath != "":  # definitely not a great way to implement this
+        root.iconphoto(False, PhotoImage(file=pychossIconPath))
+except: pass
 
 # main loop
 root.mainloop()
